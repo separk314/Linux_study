@@ -1,0 +1,199 @@
+# 2강
+
+## CLI 명령어
+
+: Command Line Interface
+
+자유도: Window < Mac OS < Linux
+
+- 파일 생성: `touch`
+    
+    ```bash
+    touch 파일이름
+    ```
+    
+
+- 프로그램 설치: `sudo apt install`
+    - ******apt******: advanced packaging tool, 프로그램 설치 툴
+        
+        나중에는 nix 사용!
+        
+    - ********sudo********: 관리자 권한으로 시스템 전체가 사용 가능한 프로그램 설치 → **su**peruser **do**
+    
+    ```bash
+    sudo apt install 프로그램이름 
+    ```
+    
+
+- 메뉴얼 보기: `man 프로그램명`
+    
+    ```bash
+    man ls
+    ```
+    
+
+## 서버와 리눅스
+
+리눅스는 서버로 사용
+
+1. 서버 설정
+2. 포트포워딩
+- 서버: 포트를 점유하고 있는 프로그램
+
+- 포트(네트워크) 확인하기
+    
+    먼저 net-tools를 다운로드 해준다.
+    
+    ```bash
+    sudo apt install net-tools
+    ```
+    
+    - netstat 메뉴얼 보기
+        
+        ```bash
+        man netstat
+        ```
+        
+    
+    - 포트 확인하기: `netstat -lnap`
+        
+        ```bash
+        netstat -lnap
+        ```
+        
+        ![Untitled](2%E1%84%80%E1%85%A1%E1%86%BC%20ab2a3a528ddb4d1a9dbc329da55fb7ab/Untitled.png)
+        
+        IP:port번호
+        
+        ex) 127.0.0.1:**631**의 port 번호는 **631**
+        
+    
+
+### 인터넷
+
+내 컴퓨터(IP)에서 서버를 키면 다른 컴퓨터에서 내 컴퓨터에 접속할 수 있다. 
+
+- port: IP 내에서 어플리케이션 상호 구분을 위해 사용하는 번호.
+    
+    ex) HTTP의 port 번호는 80이다. naver.com:80으로 요청을 보내면 네이버에 접속할 수 있다.
+    
+
+## SSH server 설치
+
+```bash
+sudo apt install openssh-server
+```
+
+ssh server를 설치한 다음 `netstat -lnap`으로 포트 상태를 확인하면
+
+![Untitled](2%E1%84%80%E1%85%A1%E1%86%BC%20ab2a3a528ddb4d1a9dbc329da55fb7ab/Untitled%201.png)
+
+22번 포트를 사용하고 있는 것을 볼 수 있다 ⇒ 외부에서 접속 가능 
+
+- 내 아이피 확인: `ifconfig`
+
+### window에서 SSH server 연결하기
+
+- 참고: [https://www.lainyzine.com/ko/article/how-to-connect-to-linux-server-with-ssh-on-windows-10/](https://www.lainyzine.com/ko/article/how-to-connect-to-linux-server-with-ssh-on-windows-10/)
+- 에러 해결: [https://suzxc2468.tistory.com/155](https://suzxc2468.tistory.com/155)
+1. OpenSSH 클라이언트 활성화
+
+```bash
+$ Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
+```
+
+1. ssh 버전 확인
+
+```bash
+$ ssh -V
+OpenSSH_for_Windows_8.1p1, LibreSSL 3.0.2
+```
+
+1. OpenSSH로 리눅스 서버에 접속
+
+```bash
+$ ssh [USER]@[HOSTNAME] -p [PORT]
+```
+
+![Untitled](2%E1%84%80%E1%85%A1%E1%86%BC%20ab2a3a528ddb4d1a9dbc329da55fb7ab/Untitled%202.png)
+
+윈도우에서 리눅스 서버에 접속했다.
+
+### window에 접근
+
+인터넷 사업자(SKT, KT, LG U+)가 기기에 IP를 할당한다.
+
+공유기를 통해 하나의 IP로 핸드폰/MAC/Linux… 등 다양한 기기에서 사용한다.
+
+- 즉, 공유받은 IP는 공유기가 만들어낸 가짜 IP
+- 리눅스는 자신의 가짜 IP만 알고 있다.
+
+따라서 외부 → 내 컴퓨터(가짜IP)까지 접근이 불가능하고, 공유기(진짜IP)까지만 접근 가능하다.
+
+⇒ 우리는 포트 22로 온 요청을 리눅스까지 보내주어야 한다(**************************포트 포워딩**************************)
+
+공유기 자체 기능으로 설정을 바꿔주어야 한다. (기숙사 와이파이라 못 건들임ㅠ)
+
+### SSH server
+
+SSH 서버 운영 → Linux CLI로 접근 가능
+
+- 단점: 외부에서 내 컴퓨터를 접속했을 때: 연결이 끊겨 우발적 종료가 일어날 수 있다.
+    
+    → 우발적 종료를 막기 위해 ********tmux******** 사용
+    
+    client → SSH(server)에 직접적으로 연결하는 것이 아닌, tmux를 경유하여 연결.
+    
+    즉, 가상 session을 만들어 강제 종료를 막는다.
+    
+
+![Untitled](2%E1%84%80%E1%85%A1%E1%86%BC%20ab2a3a528ddb4d1a9dbc329da55fb7ab/Untitled%203.png)
+
+tmux 설치
+
+```bash
+$ sudo apt install tmux
+```
+
+```bash
+$ tmux at
+```
+
+- 참고(tmux 입문): [https://jh-bk.tistory.com/11](https://jh-bk.tistory.com/11)
+- `error connecting to /tmp/tmux-1000/default (No such file or directory)` 에러 해결
+    
+    : 새 session을 만들었다가 다시 나간다
+    
+    ```bash
+    soeun@soeun-VirtualBox:~$ tmux new -s y
+    sessions should be nested with care, unset $TMUX to force
+    soeun@soeun-VirtualBox:~$ tmux list-sessions
+    x: 1 windows (created Tue Mar 28 20:09:13 2023) [93x29] (attached)
+    ```
+    
+- `sessions should be nested with care, unset $TMUX to force` 해결
+    
+    ```bash
+    $ unset TMUX
+    ```
+    
+- 화면이 `.`으로 가득 차는 에러
+    
+    ![Untitled](2%E1%84%80%E1%85%A1%E1%86%BC%20ab2a3a528ddb4d1a9dbc329da55fb7ab/Untitled%204.png)
+    
+    화면 사이즈 때문인 것 같은데 아무것도 안 보인다.
+    
+    `ctrl + b` + `:` 사용해서 `at -d`를 하면 나올 수 있다. (세션 죽이기: `tmux kill-session -t [name]`)
+    
+    화면 분할: `tmux split-window`
+    
+    ![Untitled](2%E1%84%80%E1%85%A1%E1%86%BC%20ab2a3a528ddb4d1a9dbc329da55fb7ab/Untitled%205.png)
+    
+
+### TMUX 기능
+
+1. session
+2. 화면 분할
+    - 가로 분할: `ctrl + b` + `%`
+    - 세로 분할: `ctrl + b` + `"`
+    - 화면 이동: `ctrl + b` + 화살표
